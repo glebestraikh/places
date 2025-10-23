@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск мест и погоды</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .locations-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .location-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .location-item:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .location-item h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .location-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .weather-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .weather-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .weather-icon {
+            font-size: 64px;
+        }
+
+        .weather-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .weather-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .weather-item label {
+            display: block;
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .weather-item value {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .places-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .places-header {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .place-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .place-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+
+        .place-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .place-content {
+            padding: 20px;
+        }
+
+        .place-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .place-kinds {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #e9ecef;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .place-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .place-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .place-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .weather-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🌍 Поиск мест</h1>
+        <p>Найдите интересные места и узнайте погоду в любой точке мира</p>
+    </div>
+
+    <div id="searchSection" class="search-section">
+        <div class="search-card">
+            <div class="search-box">
+                <input
+                        type="text"
+                        id="searchInput"
+                        class="search-input"
+                        placeholder="Введите название места (например, Москва или Эйфелева башня)"
+                        onkeypress="handleKeyPress(event)"
+                />
+                <button class="search-button" onclick="searchLocations()">
+                    Найти
+                </button>
+            </div>
+            <div id="errorMessage"></div>
+            <div id="locationsList" class="locations-list"></div>
+        </div>
+    </div>
+
+    <div id="resultsSection" class="results-section">
+        <button class="back-button" onclick="goBack()">← Назад к поиску</button>
+
+        <div id="weatherCard"></div>
+        <div id="placesCard"></div>
+    </div>
+
+    <div id="loadingSection" class="search-card loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Загрузка данных...</p>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api';
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            searchLocations();
+        }
+    }
+
+    async function searchLocations() {
+        const query = document.getElementById('searchInput').value.trim();
+        const errorDiv = document.getElementById('errorMessage');
+        const locationsList = document.getElementById('locationsList');
+
+        errorDiv.innerHTML = '';
+        locationsList.innerHTML = '';
+
+        if (!query) {
+            showError('Пожалуйста, введите название места');
+            return;
+        }
+
+        const button = document.querySelector('.search-button');
+        button.disabled = true;
+        button.textContent = 'Поиск...';
+
+        try {
+            const response = await fetch(`${API_BASE}/search`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при поиске локаций');
+            }
+
+            const locations = await response.json();
+
+            if (!locations || locations.length === 0) {
+                showError('Локации не найдены. Попробуйте другой запрос.');
+                return;
+            }
+
+            displayLocations(locations);
+        } catch (error) {
+            showError('Произошла ошибка: ' + error.message);
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Найти';
+        }
+    }
+
+    function displayLocations(locations) {
+        const locationsList = document.getElementById('locationsList');
+        locationsList.innerHTML = locations.map((loc, index) => `
+                <div class="location-item" onclick='selectLocation(${JSON.stringify(loc)})'>
+                    <h3>${loc.name}</h3>
+                    <p>${[loc.state, loc.country].filter(Boolean).join(', ')}</p>
+                    <p style="font-size: 12px; color: #999;">📍 ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}</p>
+                </div>
+            `).join('');
+    }
+
+    async function selectLocation(location) {
+        document.getElementById('searchSection').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('loadingSection').style.display = 'block';
+
+        try {
+            const response = await fetch(`${API_BASE}/location/details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ location })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при получении данных');
+            }
+
+            const result = await response.json();
+            displayResults(result);
+        } catch (error) {
+            showError('Произошла ошибка: ' + error.message);
+            goBack();
+        } finally {
+            document.getElementById('loadingSection').style.display = 'none';
+        }
+    }
+
+    function displayResults(result) {
+        displayWeather(result.location, result.weather);
+        displayPlaces(result.places);
+
+        document.getElementById('resultsSection').classList.add('active');
+        document.getElementById('resultsSection').style.display = 'block';
+    }
+
+    function displayWeather(location, weather) {
+        const weatherCard = document.getElementById('weatherCard');
+
+        if (!weather) {
+            weatherCard.innerHTML = '';
+            return;
+        }
+
+        const iconUrl = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
+
+        weatherCard.innerHTML = `
+                <div class="weather-card">
+                    <div class="weather-header">
+                        <div>
+                            <div class="weather-title">${location.name}</div>
+                            <div style="opacity: 0.8; margin-top: 5px;">${weather.description}</div>
+                        </div>
+                        <img src="${iconUrl}" alt="${weather.description}" style="width: 100px; height: 100px;">
+                    </div>
+                    <div class="weather-info">
+                        <div class="weather-item">
+                            <label>Температура</label>
+                            <value>${Math.round(weather.temp)}°C</value>
+                        </div>
+                        <div class="weather-item">
+                            <label>Ощущается</label>
+                            <value>${Math.round(weather.feels_like)}°C</value>
+                        </div>
+                        <div class="weather-item">
+                            <label>Влажность</label>
+                            <value>${weather.humidity}%</value>
+                        </div>
+                        <div class="weather-item">
+                            <label>Ветер</label>
+                            <value>${weather.wind_speed} м/с</value>
+                        </div>
+                    </div>
+                </div>
+            `;
+    }
+
+    function displayPlaces(places) {
+        const placesCard = document.getElementById('placesCard');
+
+        if (!places || places.length === 0) {
+            placesCard.innerHTML = `
+                    <div class="places-card">
+                        <div class="places-header">Интересные места</div>
+                        <p style="color: #666;">К сожалению, интересные места не найдены в этой локации.</p>
+                    </div>
+                `;
+            return;
+        }
+
+        placesCard.innerHTML = `
+                <div class="places-card">
+                    <div class="places-header">Интересные места (${places.length})</div>
+                    <div class="places-grid">
+                        ${places.map(place => `
+                            <div class="place-card">
+                                ${place.image ?
+            `<img src="${place.image}" alt="${place.name}" class="place-image" onerror="this.style.display='none'">` :
+            `<div class="place-image"></div>`
+        }
+                                <div class="place-content">
+                                    <div class="place-title">${place.name || 'Без названия'}</div>
+                                    ${place.kinds ? `<span class="place-kinds">${place.kinds.split(',')[0]}</span>` : ''}
+                                    ${place.description ?
+            `<div class="place-description">${place.description}</div>` :
+            '<div class="place-description" style="color: #999;">Описание недоступно</div>'
+        }
+                                    ${place.wikipedia ?
+            `<a href="https://${place.wikipedia}" target="_blank" class="place-link">Узнать больше →</a>` :
+            ''
+        }
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+    }
+
+    function goBack() {
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('resultsSection').classList.remove('active');
+        document.getElementById('searchSection').style.display = 'block';
+        document.getElementById('locationsList').innerHTML = '';
+        document.getElementById('errorMessage').innerHTML = '';
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+</script>
+</body>
+</html>
