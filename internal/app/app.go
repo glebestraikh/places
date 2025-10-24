@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"places/internal/adapter/in"
-	"places/internal/adapter/out/foursquare"
+	"places/internal/adapter/out/geoapify"
 	"places/internal/adapter/out/graphhopper"
 	"places/internal/adapter/out/openweather"
 	"places/internal/service"
@@ -25,16 +25,16 @@ func NewApp() *App {
 	// Получаем API ключи из переменных окружения
 	graphHopperKey := os.Getenv("GRAPHHOPPER_API_KEY")
 	openWeatherKey := os.Getenv("OPENWEATHER_API_KEY")
-	foursquareKey := os.Getenv("FOURSQUARE_API_KEY")
+	geoapifyKey := os.Getenv("GEOAPIFY_API_KEY")
 
-	if graphHopperKey == "" || openWeatherKey == "" || foursquareKey == "" {
+	if graphHopperKey == "" || openWeatherKey == "" || geoapifyKey == "" {
 		log.Fatal("API keys must be set in environment variables")
 	}
 
 	// Создаем клиенты
 	geocodingClient := graphhopper.NewClient(graphHopperKey)
 	weatherClient := openweather.NewClient(openWeatherKey)
-	placesClient := foursquare.NewFoursquareClient(foursquareKey)
+	placesClient := geoapify.NewClient(geoapifyKey)
 
 	// Создаем сервис
 	srv := service.NewService(geocodingClient, weatherClient, placesClient)
@@ -55,11 +55,15 @@ func NewApp() *App {
 }
 
 func (a *App) setupRoutes() {
+	// API routes
 	a.router.HandleFunc("/api/search", a.handler.SearchLocations).Methods("POST")
 	a.router.HandleFunc("/api/location/details", a.handler.GetLocationDetails).Methods("POST")
 
 	// Serve static files
-	a.router.PathPrefix("/").Handler(http.FileServer(http.Dir("./web")))
+	staticDir := http.Dir("./web")
+	staticFileServer := http.FileServer(staticDir)
+	a.router.PathPrefix("/js/").Handler(staticFileServer)
+	a.router.PathPrefix("/").Handler(staticFileServer)
 }
 
 func (a *App) Run(addr string) error {

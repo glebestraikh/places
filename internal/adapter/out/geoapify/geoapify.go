@@ -11,13 +11,13 @@ import (
 	"strings"
 )
 
-type GeoapifyClient struct {
+type Client struct {
 	apiKey     string
 	httpClient *http.Client
 }
 
-func NewGeoapifyClient(apiKey string) *GeoapifyClient {
-	return &GeoapifyClient{
+func NewClient(apiKey string) *Client {
+	return &Client{
 		apiKey:     apiKey,
 		httpClient: &http.Client{},
 	}
@@ -83,7 +83,7 @@ type geoapifyDetailsResponse struct {
 	} `json:"features"`
 }
 
-func (c *GeoapifyClient) GetPlaces(ctx context.Context, lat, lon, radius float64) ([]model.Place, error) {
+func (c *Client) GetPlaces(ctx context.Context, lat, lon, radius float64) ([]model.Place, error) {
 	baseURL := "https://api.geoapify.com/v2/places"
 
 	params := url.Values{}
@@ -148,7 +148,7 @@ func (c *GeoapifyClient) GetPlaces(ctx context.Context, lat, lon, radius float64
 	return places, nil
 }
 
-func (c *GeoapifyClient) GetPlaceDetails(ctx context.Context, placeID string) (*model.Place, error) {
+func (c *Client) GetPlaceDetails(ctx context.Context, placeID string) (*model.Place, error) {
 	baseURL := "https://api.geoapify.com/v2/place-details"
 
 	params := url.Values{}
@@ -206,7 +206,7 @@ func (c *GeoapifyClient) GetPlaceDetails(ctx context.Context, placeID string) (*
 	// Добавляем адрес
 	address := props.Formatted
 	if address == "" {
-		addressParts := []string{}
+		var addressParts []string
 		if props.AddressLine1 != "" {
 			addressParts = append(addressParts, props.AddressLine1)
 		}
