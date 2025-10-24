@@ -21,7 +21,7 @@
 
 ## Методы API
 
-- Получение локаций с координатами и названиями: [GraphHopper Geocode](https://docs.graphhopper.com/#operation/getGeocode)  
-- Получение погоды по координатам: [OpenWeatherMap Current Weather](https://openweathermap.org/current)  
-- Получение списка интересных мест по координатам: [OpenTripMap Objects list](https://opentripmap.io/docs#/Objects%20list/getListOfPlacesByRadius)  
-- Получение описания места по его id: [OpenTripMap Object properties](https://opentripmap.io/docs#/Object%20properties/getPlaceByXid)
+[1] Получение локаций с координатами и названиями: [GraphHopper Geocode](https://docs.graphhopper.com/#operation/getGeocode)  
+[2] Получение погоды по координатам: [OpenWeatherMap Current Weather](https://openweathermap.org/current)  
+[3] Получение списка интересных мест по координатам: [Geoapify places](https://apidocs.geoapify.com/docs/places)  
+[4] Получение описания места по его id: [Geopaify place details](https://apidocs.geoapify.com/docs/place-details)
