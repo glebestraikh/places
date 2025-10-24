@@ -50,7 +50,9 @@ func (h *Handler) SearchLocations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(locations)
+	if err := json.NewEncoder(w).Encode(locations); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (h *Handler) GetLocationDetails(w http.ResponseWriter, r *http.Request) {
@@ -72,5 +74,7 @@ func (h *Handler) GetLocationDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
