@@ -1,20 +1,17 @@
 package app
 
 import (
-	"bufio"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-
 	"places/internal/adapter/in"
 	"places/internal/adapter/out/foursquare"
 	"places/internal/adapter/out/graphhopper"
 	"places/internal/adapter/out/openweather"
 	"places/internal/service"
+	"places/internal/util"
 )
 
 type App struct {
@@ -22,35 +19,8 @@ type App struct {
 	handler *in.Handler
 }
 
-func loadEnv(filename string) {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue // пропускаем пустые строки и комментарии
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		os.Setenv(key, value) // устанавливаем переменную окружения
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func NewApp() *App {
-	loadEnv("config.env")
+	util.LoadEnv("config.env")
 
 	// Получаем API ключи из переменных окружения
 	graphHopperKey := os.Getenv("GRAPHHOPPER_API_KEY")
@@ -67,10 +37,10 @@ func NewApp() *App {
 	placesClient := foursquare.NewFoursquareClient(foursquareKey)
 
 	// Создаем сервис
-	service := service.NewService(geocodingClient, weatherClient, placesClient)
+	srv := service.NewService(geocodingClient, weatherClient, placesClient)
 
 	// Создаем HTTP handler
-	handler := in.NewHandler(service)
+	handler := in.NewHandler(srv)
 
 	// Создаем router
 	router := mux.NewRouter()
@@ -93,16 +63,6 @@ func (a *App) setupRoutes() {
 }
 
 func (a *App) Run(addr string) error {
-	// Настройка CORS
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type"},
-		AllowCredentials: true,
-	})
-
-	handler := c.Handler(a.router)
-
 	log.Printf("Server starting on %s", addr)
-	return http.ListenAndServe(addr, handler)
+	return http.ListenAndServe(addr, a.router)
 }
