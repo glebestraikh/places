@@ -92,8 +92,8 @@ func (s *service) enrichPlacesWithDetails(ctx context.Context, places []model.Pl
 	}
 
 	detailedPlaces := make([]model.Place, len(places))
-	var wg sync.WaitGroup
-	var mu sync.Mutex
+	var wg sync.WaitGroup // ждёт завершения всех горутин
+	var mu sync.Mutex     // мьютекс, чтобы безопасно записывать данные в общий массив detailedPlaces
 
 	for i, place := range places {
 		wg.Add(1)
