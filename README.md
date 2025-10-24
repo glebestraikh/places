@@ -24,4 +24,4 @@
 [1] Получение локаций с координатами и названиями: [GraphHopper Geocode](https://docs.graphhopper.com/#operation/getGeocode)  
 [2] Получение погоды по координатам: [OpenWeatherMap Current Weather](https://openweathermap.org/current)  
 [3] Получение списка интересных мест по координатам: [Geoapify places](https://apidocs.geoapify.com/docs/places)  
-[4] Получение описания места по его id: [Geopaify place details](https://apidocs.geoapify.com/docs/place-details)
+[4] Получение описания места по его id: [Geoapify place details](https://apidocs.geoapify.com/docs/place-details)
