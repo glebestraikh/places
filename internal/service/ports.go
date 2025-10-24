@@ -5,6 +5,10 @@ import (
 	"places/internal/model"
 )
 
+/*
+	Интерфейсы бизнес логики для внешних потребителей
+*/
+
 // Service определяет интерфейс бизнес-логики
 type Service interface {
 	SearchLocations(ctx context.Context, query string) ([]model.Location, error)
