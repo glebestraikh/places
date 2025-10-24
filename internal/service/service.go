@@ -52,7 +52,7 @@ func (s *service) GetLocationDetails(ctx context.Context, location model.Locatio
 	// Асинхронно получаем места
 	go func() {
 		defer wg.Done()
-		places, err := s.placesClient.GetPlaces(ctx, location.Lat, location.Lon, 5000)
+		places, err := s.placesClient.GetPlaces(ctx, location.Lat, location.Lon, 2000)
 		if err != nil {
 			errCh <- err
 			return
@@ -83,12 +83,6 @@ func (s *service) GetLocationDetails(ctx context.Context, location model.Locatio
 func (s *service) enrichPlacesWithDetails(ctx context.Context, places []model.Place) []model.Place {
 	if len(places) == 0 {
 		return places
-	}
-
-	// Ограничиваем количество мест для детализации
-	maxPlaces := 10
-	if len(places) > maxPlaces {
-		places = places[:maxPlaces]
 	}
 
 	detailedPlaces := make([]model.Place, len(places))
