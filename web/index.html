@@ -3,574 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск мест и погоды</title>
+    <title>Поиск мест</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', 'Arial', sans-serif; background: #fff; color: #202124; line-height: 1.6; }
+        header { background: #fff; padding: 20px 0; border-bottom: 1px solid #e8eaed; text-align: center; }
+        header h1 { font-size: 24px; font-weight: 400; color: #4285f4; }
+        main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+        /* Search */
+        .search-box { display: flex; gap: 12px; margin-bottom: 24px; }
+        #searchInput { flex: 1; padding: 12px 16px; border: 1px solid #dfe1e5; border-radius: 24px; font-size: 16px; outline: none; }
+        #searchInput:hover { border-color: #dadce0; box-shadow: 0 1px 6px rgba(32,33,36,0.08); }
+        #searchInput:focus { border-color: #4285f4; box-shadow: 0 1px 6px rgba(66,133,244,0.3); }
+        #searchButton { padding: 12px 32px; background: #4285f4; color: white; border: none; border-radius: 24px; font-size: 14px; font-weight: 500; cursor: pointer; }
+        #searchButton:hover { background: #1a73e8; }
+        #searchButton:disabled { background: #e8eaed; color: #80868b; cursor: not-allowed; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+        /* Locations */
+        .location-item { padding: 16px; background: #fff; border: 1px solid #e8eaed; border-radius: 8px; cursor: pointer; margin-bottom: 12px; }
+        .location-item:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.12); border-color: #dadce0; }
+        .location-item h3 { font-size: 16px; font-weight: 500; color: #202124; margin-bottom: 4px; }
+        .location-item p { font-size: 14px; color: #5f6368; }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
+        /* Back button */
+        .back-btn { padding: 8px 16px; background: #fff; color: #4285f4; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; cursor: pointer; margin-bottom: 20px; }
+        .back-btn:hover { background: #f8f9fa; }
 
-        .header h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
+        /* Weather */
+        .weather-card { background: #fff; border: 1px solid #e8eaed; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+        .weather-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .weather-title { font-size: 20px; font-weight: 500; color: #202124; }
+        .weather-desc { font-size: 14px; color: #5f6368; margin-top: 4px; }
+        .weather-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; }
+        .weather-item label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; }
+        .weather-item value { display: block; font-size: 24px; font-weight: 400; color: #202124; }
 
-        .header p {
-            font-size: 18px;
-            opacity: 0.9;
-        }
+        /* Places */
+        .places-header { font-size: 20px; font-weight: 500; color: #202124; margin-bottom: 20px; }
+        .places-list { display: flex; flex-direction: column; gap: 12px; }
+        .place-item { background: #fff; border: 1px solid #e8eaed; border-radius: 8px; padding: 16px; cursor: pointer; }
+        .place-item:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.12); border-color: #dadce0; }
+        .place-item-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .place-item-title { font-size: 16px; font-weight: 500; color: #202124; }
+        .place-category { display: inline-block; padding: 4px 8px; background: #e8f0fe; color: #1967d2; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+        .place-item-description { font-size: 14px; color: #5f6368; line-height: 1.5; }
 
-        .search-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-        }
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.5); }
+        .modal-content { background: #fff; margin: 40px auto; max-width: 700px; border-radius: 8px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close { position: absolute; right: 16px; top: 16px; font-size: 28px; font-weight: 300; color: #5f6368; cursor: pointer; z-index: 1; }
+        .close:hover { color: #202124; }
+        .modal-image { width: 100%; max-height: 300px; object-fit: cover; }
+        .modal-body { padding: 32px 40px; }
+        .modal-title { font-size: 24px; font-weight: 500; color: #202124; margin-bottom: 8px; padding-right: 40px; }
+        .modal-section { margin-bottom: 24px; padding: 0; }
+        .modal-section h3 { font-size: 14px; font-weight: 500; color: #5f6368; margin-bottom: 16px; text-transform: uppercase; }
+        .modal-section p { font-size: 14px; color: #202124; line-height: 1.8; white-space: pre-line; word-wrap: break-word; margin: 0; padding: 0; }
+        .modal-links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+        .modal-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #fff; color: #4285f4; border: 1px solid #dadce0; border-radius: 4px; text-decoration: none; font-size: 14px; }
+        .modal-link:hover { background: #f8f9fa; }
 
-        .search-box {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        /* Loading */
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #4285f4; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .search-input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
+        /* Error */
+        .error-message { background: #fce8e6; color: #c5221f; padding: 12px 16px; border-radius: 4px; font-size: 14px; margin-bottom: 16px; }
 
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-button {
-            padding: 15px 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .search-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .search-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .locations-list {
-            display: grid;
-            gap: 15px;
-        }
-
-        .location-item {
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-
-        .location-item:hover {
-            background: #e9ecef;
-            border-color: #667eea;
-            transform: translateX(5px);
-        }
-
-        .location-item h3 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .location-item p {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .results-section {
-            display: none;
-        }
-
-        .results-section.active {
-            display: block;
-        }
-
-        .weather-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 30px;
-            color: white;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .weather-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .weather-title {
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .weather-icon {
-            font-size: 64px;
-        }
-
-        .weather-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-        }
-
-        .weather-item {
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .weather-item label {
-            display: block;
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .weather-item value {
-            display: block;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .places-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .places-header {
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .places-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .place-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-
-        .place-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border-color: #667eea;
-        }
-
-        .place-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .place-content {
-            padding: 20px;
-        }
-
-        .place-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .place-kinds {
-            display: inline-block;
-            padding: 5px 12px;
-            background: #e9ecef;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .place-description {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .place-link {
-            display: inline-block;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .place-link:hover {
-            text-decoration: underline;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .back-button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-            text-decoration: none;
-        }
-
-        .back-button:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
+        /* Mobile */
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 32px;
-            }
-
-            .search-box {
-                flex-direction: column;
-            }
-
-            .places-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .weather-info {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .search-box { flex-direction: column; }
+            .modal-content { margin: 20px; max-width: calc(100% - 40px); }
+            .modal-body { padding: 24px; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>🌍 Поиск мест</h1>
-        <p>Найдите интересные места и узнайте погоду в любой точке мира</p>
-    </div>
+    <header>
+        <h1>Поиск мест</h1>
+    </header>
 
-    <div id="searchSection" class="search-section">
-        <div class="search-card">
+    <main id="app">
+        <div id="searchSection">
             <div class="search-box">
-                <input
-                        type="text"
-                        id="searchInput"
-                        class="search-input"
-                        placeholder="Введите название места (например, Москва или Эйфелева башня)"
-                        onkeypress="handleKeyPress(event)"
-                />
-                <button class="search-button" onclick="searchLocations()">
-                    Найти
-                </button>
+                <input type="text" id="searchInput" placeholder="Введите название места">
+                <button id="searchButton">Поиск</button>
             </div>
             <div id="errorMessage"></div>
-            <div id="locationsList" class="locations-list"></div>
+            <div id="locationsList"></div>
+        </div>
+
+        <div id="resultsSection" style="display: none;">
+            <button id="backButton" class="back-btn">← Назад</button>
+            <div id="weatherCard"></div>
+            <div id="placesCard"></div>
+        </div>
+
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Загрузка...</p>
+        </div>
+    </main>
+
+    <div id="placeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
         </div>
     </div>
 
-    <div id="resultsSection" class="results-section">
-        <button class="back-button" onclick="goBack()">← Назад к поиску</button>
-
-        <div id="weatherCard"></div>
-        <div id="placesCard"></div>
-    </div>
-
-    <div id="loadingSection" class="search-card loading" style="display: none;">
-        <div class="spinner"></div>
-        <p>Загрузка данных...</p>
-    </div>
-</div>
-
-<script>
-    const API_BASE = '/api';
-
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            searchLocations();
-        }
-    }
-
-    async function searchLocations() {
-        const query = document.getElementById('searchInput').value.trim();
-        const errorDiv = document.getElementById('errorMessage');
-        const locationsList = document.getElementById('locationsList');
-
-        errorDiv.innerHTML = '';
-        locationsList.innerHTML = '';
-
-        if (!query) {
-            showError('Пожалуйста, введите название места');
-            return;
-        }
-
-        const button = document.querySelector('.search-button');
-        button.disabled = true;
-        button.textContent = 'Поиск...';
-
-        try {
-            const response = await fetch(`${API_BASE}/search`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query })
-            });
-
-            if (!response.ok) {
-                throw new Error('Ошибка при поиске локаций');
-            }
-
-            const locations = await response.json();
-
-            if (!locations || locations.length === 0) {
-                showError('Локации не найдены. Попробуйте другой запрос.');
-                return;
-            }
-
-            displayLocations(locations);
-        } catch (error) {
-            showError('Произошла ошибка: ' + error.message);
-        } finally {
-            button.disabled = false;
-            button.textContent = 'Найти';
-        }
-    }
-
-    function displayLocations(locations) {
-        const locationsList = document.getElementById('locationsList');
-        locationsList.innerHTML = locations.map((loc, index) => `
-                <div class="location-item" onclick='selectLocation(${JSON.stringify(loc)})'>
-                    <h3>${loc.name}</h3>
-                    <p>${[loc.state, loc.country].filter(Boolean).join(', ')}</p>
-                    <p style="font-size: 12px; color: #999;">📍 ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)}</p>
-                </div>
-            `).join('');
-    }
-
-    async function selectLocation(location) {
-        document.getElementById('searchSection').style.display = 'none';
-        document.getElementById('resultsSection').style.display = 'none';
-        document.getElementById('loadingSection').style.display = 'block';
-
-        try {
-            const response = await fetch(`${API_BASE}/location/details`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ location })
-            });
-
-            if (!response.ok) {
-                throw new Error('Ошибка при получении данных');
-            }
-
-            const result = await response.json();
-            displayResults(result);
-        } catch (error) {
-            showError('Произошла ошибка: ' + error.message);
-            goBack();
-        } finally {
-            document.getElementById('loadingSection').style.display = 'none';
-        }
-    }
-
-    function displayResults(result) {
-        displayWeather(result.location, result.weather);
-        displayPlaces(result.places);
-
-        document.getElementById('resultsSection').classList.add('active');
-        document.getElementById('resultsSection').style.display = 'block';
-    }
-
-    function displayWeather(location, weather) {
-        const weatherCard = document.getElementById('weatherCard');
-
-        if (!weather) {
-            weatherCard.innerHTML = '';
-            return;
-        }
-
-        const iconUrl = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
-
-        weatherCard.innerHTML = `
-                <div class="weather-card">
-                    <div class="weather-header">
-                        <div>
-                            <div class="weather-title">${location.name}</div>
-                            <div style="opacity: 0.8; margin-top: 5px;">${weather.description}</div>
-                        </div>
-                        <img src="${iconUrl}" alt="${weather.description}" style="width: 100px; height: 100px;">
-                    </div>
-                    <div class="weather-info">
-                        <div class="weather-item">
-                            <label>Температура</label>
-                            <value>${Math.round(weather.temp)}°C</value>
-                        </div>
-                        <div class="weather-item">
-                            <label>Ощущается</label>
-                            <value>${Math.round(weather.feels_like)}°C</value>
-                        </div>
-                        <div class="weather-item">
-                            <label>Влажность</label>
-                            <value>${weather.humidity}%</value>
-                        </div>
-                        <div class="weather-item">
-                            <label>Ветер</label>
-                            <value>${weather.wind_speed} м/с</value>
-                        </div>
-                    </div>
-                </div>
-            `;
-    }
-
-    function displayPlaces(places) {
-        const placesCard = document.getElementById('placesCard');
-
-        if (!places || places.length === 0) {
-            placesCard.innerHTML = `
-                    <div class="places-card">
-                        <div class="places-header">Интересные места</div>
-                        <p style="color: #666;">К сожалению, интересные места не найдены в этой локации.</p>
-                    </div>
-                `;
-            return;
-        }
-
-        placesCard.innerHTML = `
-                <div class="places-card">
-                    <div class="places-header">Интересные места (${places.length})</div>
-                    <div class="places-grid">
-                        ${places.map(place => `
-                            <div class="place-card">
-                                ${place.image ?
-            `<img src="${place.image}" alt="${place.name}" class="place-image" onerror="this.style.display='none'">` :
-            `<div class="place-image"></div>`
-        }
-                                <div class="place-content">
-                                    <div class="place-title">${place.name || 'Без названия'}</div>
-                                    ${place.kinds ? `<span class="place-kinds">${place.kinds.split(',')[0]}</span>` : ''}
-                                    ${place.description ?
-            `<div class="place-description">${place.description}</div>` :
-            '<div class="place-description" style="color: #999;">Описание недоступно</div>'
-        }
-                                    ${place.wikipedia ?
-            `<a href="https://${place.wikipedia}" target="_blank" class="place-link">Узнать больше →</a>` :
-            ''
-        }
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-    }
-
-    function goBack() {
-        document.getElementById('resultsSection').style.display = 'none';
-        document.getElementById('resultsSection').classList.remove('active');
-        document.getElementById('searchSection').style.display = 'block';
-        document.getElementById('locationsList').innerHTML = '';
-        document.getElementById('errorMessage').innerHTML = '';
-    }
-
-    function showError(message) {
-        const errorDiv = document.getElementById('errorMessage');
-        errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
-    }
-</script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
