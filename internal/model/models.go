@@ -37,5 +37,6 @@ type Place struct {
 	Distance    float64 `json:"distance,omitempty"`
 	Description string  `json:"description,omitempty"`
 	Image       string  `json:"image,omitempty"`
+	WebSite     string  `json:"website,omitempty"`
 	Wikipedia   string  `json:"wikipedia,omitempty"`
 }
