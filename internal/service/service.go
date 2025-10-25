@@ -26,55 +26,41 @@ func (s *service) SearchLocations(ctx context.Context, query string) ([]model.Lo
 }
 
 func (s *service) GetLocationDetails(ctx context.Context, location model.Location) (*model.LocationResult, error) {
-	result := &model.LocationResult{
-		Location: location,
-	}
+	result := &model.LocationResult{Location: location}
 
-	// Создаем каналы для результатов
 	weatherCh := make(chan *model.Weather, 1)
 	placesCh := make(chan []model.Place, 1)
-	errCh := make(chan error, 2)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// Асинхронно получаем погоду
+	// Погода
 	go func() {
 		defer wg.Done()
-		weather, err := s.weatherClient.GetWeather(ctx, location.Lat, location.Lon)
-		if err != nil {
-			errCh <- err
-			return
+		if w, err := s.weatherClient.GetWeather(ctx, location.Lat, location.Lon); err == nil {
+			weatherCh <- w
 		}
-		weatherCh <- weather
 	}()
 
-	// Асинхронно получаем места
+	// Места
 	go func() {
 		defer wg.Done()
-		places, err := s.placesClient.GetPlaces(ctx, location.Lat, location.Lon, 2000)
-		if err != nil {
-			errCh <- err
-			return
+		if ps, err := s.placesClient.GetPlaces(ctx, location.Lat, location.Lon, 2000); err == nil {
+			placesCh <- s.enrichPlacesWithDetails(ctx, ps)
 		}
-
-		// Асинхронно получаем детали для каждого места
-		detailedPlaces := s.enrichPlacesWithDetails(ctx, places)
-		placesCh <- detailedPlaces
 	}()
 
-	// Ждем завершения всех горутин
+	// Закрываем каналы, когда все писатели завершились
 	wg.Wait()
 	close(weatherCh)
 	close(placesCh)
-	close(errCh)
 
-	// Собираем результаты
-	if weather := <-weatherCh; weather != nil {
-		result.Weather = weather
+	// Читаем без риска блокировки
+	if w, ok := <-weatherCh; ok && w != nil {
+		result.Weather = w
 	}
-	if places := <-placesCh; places != nil {
-		result.Places = places
+	if ps, ok := <-placesCh; ok && ps != nil {
+		result.Places = ps
 	}
 
 	return result, nil
